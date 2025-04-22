@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+{% block content %}
+
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card custom-card">
+
+            <div class="card-header  justify-content-between">
+                <h3 class="card-title">用户管理</h3>
+
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th> 用户名</th>
+                            <th> 注册时间</th>
+                            <th> 用户类型</th>
+                            <th> 用户班级</th>
+
+                            <th> 操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for usr in users %}
+                            <tr>
+                                <td class="py-1">
+                                    <p>{{ usr.username }}</p>
+                                </td>
+
+                                <td> {{ usr.date_joined | date:"Y-m-d H:i" }}</td>
+                                <td> {{ usr.get_type_display }}</td>
+                                <td> {{ usr.classes.name }}</td>
+                                <td>
+                                    <button class="btn  btn-danger-light delete-usr" data-id="{{ usr.id }}">删除
+                                    </button>
+                                    {% if usr.type == 'user' %}
+                                        <button class="btn  btn-primary-light show-usr" data-id="{{ usr.id }}"
+                                                data-username="{{ usr.username }}">查看签到统计
+                                        </button>
+                                    {% endif %}
+                                </td>
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example" style="margin-top: 10px ">
+                        <ul class="pagination">
+
+
+                            {% if page <= 0 %}
+                                <li class="page-item  disabled">
+                                    <a class="page-link disabled" disabled="">上一页</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a href="/users?page={{ page|add:-1 }}" class="page-link">上一页</a>
+                                </li>
+                            {% endif %}
+
+                            {% for p in page_list %}
+
+                                {% if p == page %}
+                                    <li class="page-item  active">
+                                        <a class="page-link">{{ p|add:1 }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="/users?page={{ p }}">{{ p|add:1 }}</a>
+                                    </li>
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            {% if page_count >= count %}
+                                <li class="page-item  disabled">
+                                    <a class="page-link disabled">下一页</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a href="/users?page={{ page|add:1 }}" class="page-link">下一页</a>
+                                </li>
+                            {% endif %}
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script>
+
+        $(".delete-usr").click(function () {
+            var id = $(this).data("id");
+            $.ajax({
+                url: "/classes",
+                type: "delete",
+                dataType: "json",
+                data: JSON.stringify({
+                    csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+                    id: id
+                }),
+                success: function (data) {
+                    if (data.code === 200) {
+                        message_box("", data.msg, "success");
+                        setTimeout(function () {
+                            history.go(0)
+                        }, 1000)
+                    }
+                }
+            })
+        })
+        $(".show-usr").click(function () {
+            var username = $(this).data("username");
+            window.open("/?username=" + username)
+        })
+    </script>
+{% endblock %}
