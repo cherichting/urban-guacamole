@@ -1,0 +1,312 @@
+{% extends "layout.html" %}
+{% block content %}
+
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card custom-card">
+
+            <div class="card-header  justify-content-between">
+                <h3 class="card-title">活动管理</h3>
+            {% if user.type != "user" %}
+                <div class="prism-toggle">
+                    <button class="btn btn-sm btn-primary-light" data-target="#myModal"
+                            data-toggle="modal">添加新活动
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th> 活动名称</th>
+                            <th> 开始时间</th>
+
+                            <th> 班级</th>
+                            <th> 操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for course in courses %}
+                            <tr>
+                                <td class="py-1">
+                                    <p>{{ course.name }}</p>
+                                </td>
+                                <td> {{ course.start_time }}</td>
+                                <td>
+                                    {{ course.classes.name }}
+                                </td>
+                                <td>
+                                    {% if user.type != "user" %}
+                                        <button class="btn  btn-danger-light delete-course" data-id="{{ course.id }}">删除
+                                        </button>
+                                    {% endif %}
+
+                                    {% if not course.is_end %}
+                                        <button class="btn  btn-primary-light show-course" data-id="{{ course.id }}">去签到
+                                        </button>
+                                    {% else %}
+                                        <button class="btn  btn-primary-light show-course disabled" disabled
+                                                data-id="{{ course.id }}">去签到
+                                        </button>
+                                        {% if not course.has_check_log and user.type == "user" %}
+                                            <button class="btn  btn-primary-light add-apps"
+                                                    data-id="{{ course.id }}" data-name="{{ course.name }}">错过签到？申请补签
+                                            </button>
+                                        {% endif %}
+
+                                    {% endif %}
+
+
+                                </td>
+
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example" style="margin-top: 10px ">
+                        <ul class="pagination">
+
+
+                            {% if page <= 0 %}
+                                <li class="page-item  disabled">
+                                    <a class="page-link disabled">上一页</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a href="/courses?page={{ page|add:-1 }}" class="page-link">上一页</a>
+                                </li>
+                            {% endif %}
+
+                            {% for p in page_list %}
+
+                                {% if p == page %}
+                                    <li class="page-item  active">
+                                        <a class="page-link">{{ p|add:1 }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="/courses?page={{ p }}">{{ p|add:1 }}</a>
+                                    </li>
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            {% if page_count >= count %}
+                                <li class="page-item  disabled">
+                                    <a class="page-link disabled">下一页</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a href="/courses?page={{ page|add:1 }}" class="page-link">下一页</a>
+                                </li>
+                            {% endif %}
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+
+
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog ">
+            <div class="modal-content" style="width: 100%;height: 100%">
+
+                <!-- 模态框头部 -->
+                <div class="modal-header">
+                    <h4 class="modal-title">创建活动</h4>
+
+                </div>
+
+                <!-- 模态框主体 -->
+                <div class="modal-body" style=" text-align: center;">
+                    <form action="javascript:void(0)" class="form">
+                        <input type="text" name="name" class="form-control" placeholder="活动名称">
+                        <br>
+                        <input type="datetime-local" name="start_time" id="start_time" class="form-control"
+                               placeholder="开始时间">
+                        <br>
+                        {% if user.is_superuser %}
+
+                            <select name="classes" class="form-control" id="classes">
+                                {% for classes in classess %}
+                                    <option value="{{ classes.id }}">{{ classes.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <br><br>
+                        {% else %}
+                            <input type="hidden" id="classes" value="{{ user.classes.id }}">
+                        {% endif %}
+                    </form>
+                </div>
+
+                <!-- 模态框底部 -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="submit">创建</button>
+                    <button type="button" class="btn btn-danger" id="cancel">取消</button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="modal fade" id="myModal2">
+        <div class="modal-dialog ">
+            <div class="modal-content" style="width: 100%;height: 100%">
+
+                <!-- 模态框头部 -->
+                <div class="modal-header">
+                    <h4 class="modal-title">审批申请</h4>
+
+                </div>
+
+                <!-- 模态框主体 -->
+                <div class="modal-body" style=" text-align: center;">
+                    <form action="javascript:void(0)" class="form">
+                        <input type="text" name="name" class="form-control" disabled id="add-app-name"
+                               placeholder="活动名称" value="">
+                        <br>
+                        <input type="hidden" name="id" id="add-apps-id" value="">
+                        <select name="option" id="add-apps-option"  class="form-control">
+                            <option value="补签">补签</option>
+                            <option value="请假">请假</option>
+                        </select>
+                        <br>
+                        <textarea class="form-control" name="data" id="add-apps-data" cols="30" rows="10" placeholder="请输入申请理由"></textarea>
+
+                    </form>
+                </div>
+
+                <!-- 模态框底部 -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="submit-add-apps">申请审核</button>
+                    <button type="button" class="btn btn-danger" id="cancel-add-apps">取消</button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script>
+        $("#submit").click(function () {
+            $.ajax({
+                url: "/courses",
+                type: "post",
+                dataType: "json",
+                data: {
+                    name: $("input[name='name']").val(),
+                    start_time: $("input[name='start_time']").val(),
+                    classes: $("#classes").val(),
+                    csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+                },
+                success: function (data) {
+                    if (data.code === 200) {
+                        message_box("", data.msg, "success");
+                        setTimeout(function () {
+                            history.go(0)
+                        }, 1000)
+                    }
+                }
+            })
+
+        })
+        $(".delete-course").click(function () {
+            var id = $(this).data("id");
+            $.ajax({
+                url: "/courses",
+                type: "delete",
+                dataType: "json",
+                data: JSON.stringify({
+                    csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+                    id: id
+                }),
+                success: function (data) {
+                    if (data.code === 200) {
+                        message_box("", data.msg, "success");
+                        setTimeout(function () {
+                            history.go(0)
+                        }, 1000)
+                    }
+                }
+            })
+        })
+        $("#cancel").click(function () {
+            $("#myModal").modal("hide")
+        })
+        $(".show-course").click(function () {
+            var id = $(this).data("id");
+            window.open("/check_in?course_id=" + id, "_blank")
+        })
+        $(".add-apps").click(function () {
+            var id = $(this).data("id");
+            var name = $(this).data("name");
+            $("#add-apps-id").val(id);
+            $("#add-app-name").val(name);
+            $("#myModal2").modal("show")
+        })
+        $("#cancel-add-apps").click(function () {
+            $("#myModal2").modal("hide")
+        })
+        $("#submit-add-apps").click(function () {
+
+            var id = $("#add-apps-id").val();
+            if (!$("#add-apps-data").val()) {
+                message_box("", "请输入申请理由", "warning");
+                return
+            }
+
+            $.ajax({
+                url: "/apps",
+                type: "post",
+                dataType: "json",
+                data: {
+                    course_id: id,
+                    option: $("#add-apps-option").val(),
+                    data: $("#add-apps-data").val(),
+                    csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+                },
+                success: function (data) {
+                    if (data.code === 200) {
+                        message_box("", data.msg, "success");
+                        setTimeout(function () {
+                            history.go(0)
+                        }, 1000)
+                    }
+                }
+            })
+        })
+
+
+    </script>
+{% endblock %}

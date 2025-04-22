@@ -1,0 +1,344 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="row">
+        <div class="col-xxl-4 col-xl-12">
+            <div class="card custom-card overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="d-sm-flex align-items-top p-4 border-bottom border-block-end-dashed main-profile-cover">
+                        <div><span class="avatar avatar-xxl avatar-rounded online me-3"> <img
+                                src="/static/{{ request.user.image }}" alt=""> </span></div>
+                        <div class="flex-fill main-profile-info">
+                            <div class="d-flex align-items-center justify-content-between"><h6
+                                    class="fw-semibold mb-1 text-fixed-white">{{ user.username }}</h6>
+                                <button class="btn btn-light btn-wave waves-effect waves-light" data-target="#myModal"
+                                        data-toggle="modal"><i
+                                        class="ri-add-line me-1 align-middle d-inline-block"></i>采集人脸
+                                </button>
+                            </div>
+                            <p class="mb-1 text-muted text-fixed-white op-7">{{ user.type }}</p>
+                            <p class="fs-12 text-fixed-white mb-4 op-5"><span
+                                    class="me-3">人脸数据采集：{{ images_count }}张</span></p>
+                            <div class="d-flex mb-0">
+                                <div class="me-4"><p
+                                        class="fw-bold fs-20 text-fixed-white text-shadow mb-0">{{ check_log_count }}</p>
+                                    <p class="mb-0 fs-11 op-5 text-fixed-white">签到次数</p></div>
+                                <div class="me-4"><p
+                                        class="fw-bold fs-20 text-fixed-white text-shadow mb-0">{{ succ_check_log_count }}</p>
+                                    <p class="mb-0 fs-11 op-5 text-fixed-white">签到正常次数</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-bottom border-block-end-dashed"><p class="fs-15 mb-2 me-4 fw-semibold">
+                        我的个人信息 :</p>
+                        <div class="text-muted"><p class="mb-2"><span
+                                class="avatar avatar-sm avatar-rounded me-2 bg-light text-muted"> 学号 </span>
+                            {{ user.get_user_id }}</p>
+                            <p class="mb-2"><span
+                                    class="avatar avatar-sm avatar-rounded me-2 bg-light text-muted">班级 </span>
+                                {{ user.classes.name }} </p>
+                        </div>
+                    </div>
+
+
+                    <div class="p-4">
+
+                        <p class="fs-15 mb-2 me-4 fw-semibold">人脸信息 :</p>
+                        <ul class="list-group">
+                            {% for img in images %}
+
+                                <li class="list-group-item">
+                                    <div class="d-sm-flex align-items-top"><span class="avatar avatar-sm"> <img
+                                            src="/static/{{ img.image }}" alt="img"> </span>
+                                        <div class="ms-sm-2 ms-0 mt-sm-0 mt-1 fw-semibold flex-fill">
+                                            <span class="fs-11 text-muted op-7">采集于 {{ img.add_time | date:"Y-m-d H:i:s" }}</span>
+                                        </div>
+                                        <button class="btn btn-danger btn-wave btn-sm waves-effect waves-light delete-face"
+                                                data-id="{{ img.id }}">删除
+                                        </button>
+                                    </div>
+                                </li>
+
+                            {% endfor %}
+                        </ul>
+
+
+                        <nav aria-label="Page navigation example" style="margin-top: 10px ">
+                            <ul class="pagination">
+
+
+                                {% if page <= 0 %}
+                                    <li class="page-item  disabled">
+                                        <a class="page-link disabled">上一页</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a href="/?page={{ page|add:-1 }}" class="page-link">上一页</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for p in page_list %}
+
+                                    {% if p == page %}
+                                        <li class="page-item  active">
+                                            <a class="page-link">{{ p|add:1 }}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="/?page={{ p }}">{{ p|add:1 }}</a>
+                                        </li>
+                                    {% endif %}
+
+                                {% endfor %}
+
+
+                                {% if page_count >= count %}
+                                    <li class="page-item  disabled">
+                                        <a class="page-link disabled">下一页</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a href="/?page={{ page|add:1 }}" class="page-link">下一页</a>
+                                    </li>
+                                {% endif %}
+
+                            </ul>
+                        </nav>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-xxl-8 col-xl-12">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="card custom-card">
+                        <div class="card-body p-0">
+                            <div class="p-3 border-bottom border-block-end-dashed d-flex align-items-center justify-content-between">
+                                <div>
+                                    <ul class="nav nav-tabs mb-0 tab-style-6 justify-content-start" id="myTab"
+                                        role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="activity-tab" data-bs-toggle="tab"
+                                                    data-bs-target="#activity-tab-pane" type="button" role="tab"
+                                                    aria-controls="activity-tab-pane" aria-selected="true"><i
+                                                    class="ri-gift-line me-1 align-middle d-inline-block"></i>最新消息
+                                            </button>
+                                        </li>
+
+                                    </ul>
+                                </div>
+
+                            </div>
+                            <div class="p-3">
+                                <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane show active fade p-0 border-0" id="activity-tab-pane"
+                                         role="tabpanel" aria-labelledby="activity-tab" tabindex="0">
+                                        <ul class="list-unstyled profile-timeline">
+                                            {% if check_log %}
+
+                                                {% for check in check_log %}
+                                                    <li>
+                                                        <div><span
+                                                                class="avatar avatar-sm bg-primary-transparent avatar-rounded profile-timeline-avatar"> E </span>
+                                                            <p class="mb-2">
+                                                                <b>在 {{ check.add_time | date:"Y-m-d H:i:s" }} 进行了 {{ check.course.name }}
+                                                                    课程的签到 </b>
+                                                                签到状态 <b>{{ check.status }}</b>
+                                                                <span class="float-end fs-11 text-muted">{{ check.add_time | date:"Y-m-d H:i:s" }}</span>
+                                                            </p>
+                                                            {% if check.image %}
+                                                            <p class="profile-activity-media mb-0"><a
+                                                                    href="javascript:void(0);"> <img
+                                                                    style="width: 60px;height: auto"
+                                                                    src="/static{{ check.image.url }}" alt=""> </a></p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </li>
+
+
+                                                {% endfor %}
+                                            {% else %}
+
+                                                <div class="alert alert-warning alert-dismissible fade show"
+                                                     role="alert">
+                                                    <i class="ri-alert-line me-3 align-middle"></i><strong></strong>
+                                                    最近暂无活动记录
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                            aria-label="Close"></button>
+                                                </div>
+                                            {% endif %}
+
+
+                                        </ul>
+
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- 模态框 -->
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog ">
+            <div class="modal-content" style="width: 100%;height: 100%">
+
+                <!-- 模态框头部 -->
+                <div class="modal-header">
+                    <h4 class="modal-title">人脸信息采集</h4>
+
+                </div>
+
+                <!-- 模态框主体 -->
+                <div class="modal-body" style=" text-align: center;">
+                    <video id="video" style="z-index: 999"></video>
+                    <!-- 尽量在canvas标签上设置宽高 -->
+                    <canvas id="canvas" width="300px" height="300px"
+                            style="position: fixed;z-index: -1;display: none"></canvas>
+                    <div class="progress  progress-xs">
+                        <div class="progress-bar bg-warning" id="progress-bar" role="progressbar" style="width:0"></div>
+                    </div>
+                </div>
+
+                <!-- 模态框底部 -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="play">开始采集</button>
+                    <button type="button" class="btn btn-danger" id="stop">停止采集</button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+{% endblock %}
+
+
+{% block script %}
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('play').onclick = () => {
+            clearInterval(window.start_cam);
+            window.count = 0;
+            let constraints = {
+                // video属性设置
+                video: {
+                    width: 300,
+                    height: 300
+                },
+                // audio属性设置
+                audio: false
+            }
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(mediaStream => {
+                    // 成功返回promise对象，接收一个mediaStream参数与video标签进行对接
+                    window.stream = mediaStream
+                    document.getElementById('video').srcObject = mediaStream
+                    document.getElementById('video').play()
+                })
+            // 失败就失败了
+
+
+            window.start_cam = setInterval(() => {
+                window.count += 1;
+
+                let ctx = document.getElementById("canvas").getContext('2d')
+                ctx.drawImage(document.getElementById("video"), 0, 0, 300, 300)
+                var base64 = document.getElementById("canvas").toDataURL("image/png");
+
+                $.ajax({
+                    url: '/add_new_face',
+                    type: 'POST',
+                    data: {
+                        image: base64
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code === 200) {
+                            $("#progress-bar").css("width", data.count / 100 * 100 * 3 + "%");
+
+
+                        } else {
+                            message_box("错误", data.msg)
+
+
+                        }
+                    }
+                })
+
+            }, 1500)
+
+
+        }
+        $(".delete-face").click(function () {
+            var id = $(this).attr("data-id")
+            $.ajax({
+                url: '/delete_face',
+                type: 'POST',
+                data: {
+                    id: id
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.code === 200) {
+                        message_box("提示", data.msg)
+                        window.location.reload()
+
+                    } else {
+                        message_box("错误", data.msg)
+
+
+                    }
+                }
+            })
+
+        })
+
+        function stop_cam() {
+            if (window.start_cam) {
+                clearInterval(window.start_cam);
+            }
+            document.getElementById('video').pause()
+            // 关闭 销毁 摄像头
+
+            if (window.stream) {
+                window.stream.getTracks()[0].stop()
+                window.stream = null
+                document.getElementById('video').srcObject = null
+            }
+
+
+        }
+
+        document.getElementById('stop').onclick = () => {
+            $("#myModel").modal('hide')
+            stop_cam()
+
+        }
+
+
+        $('#myModal').on('hidden.bs.modal', function () {
+
+            // 停止摄像头
+            stop_cam()
+        })
+
+
+    </script>
+
+{% endblock %}
