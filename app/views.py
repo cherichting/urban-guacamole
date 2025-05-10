@@ -185,6 +185,7 @@ def aggs_data(request):
         if request.user.type == "user":
             check_logs = CheckLog.objects.filter(username=request.user.username)
         elif request.user.type == "teacher":
+            teacher_classes = request.user.classes
             check_logs = CheckLog.objects.filter(course=request.user.course)
             if username:
                 check_logs = check_logs.filter(username=username)
